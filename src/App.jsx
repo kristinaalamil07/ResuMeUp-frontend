@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from "react-route
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile"; // your profile page
 import Navbar from "./components/Navbar";
 
 function AppWrapper() {
@@ -18,9 +19,10 @@ function AppWrapper() {
     <>
       {!hideNavbar && <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Landing isLoggedIn={isLoggedIn} />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/signup" element={<Signup setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </>
   );

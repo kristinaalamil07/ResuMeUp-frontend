@@ -1,14 +1,16 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Navbar({ isLoggedIn, setIsLoggedIn }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Logout handler
   function handleLogout() {
     setIsLoggedIn(false);
-    navigate("/"); // redirect to landing page
+    // Redirect to public landing page after logout
+    navigate("/"); 
   }
 
-  // Button classes for navbar links
   const linkButtonClasses =
     "px-4 py-2 rounded-xl font-semibold bg-white text-blue-600 hover:bg-blue-600 hover:text-white transition-colors";
 
@@ -19,46 +21,45 @@ export default function Navbar({ isLoggedIn, setIsLoggedIn }) {
     <nav
       className="flex justify-between items-center p-6 shadow-md"
       style={{
-        background: "linear-gradient(135deg, #3b82f6, #1e40af)", // shiny blue gradient
+        background: "linear-gradient(135deg, #3b82f6, #1e40af)",
         backgroundSize: "200% 200%",
-        animation: "shine 10s ease-in-out infinite"
+        animation: "shine 10s ease-in-out infinite",
       }}
     >
-      {/* Left side - Logo */}
-      <Link to="/" className="text-2xl font-bold text-white">
+      <Link to="/" className="text-4xl font-bold text-white">
         ResuMeUp
       </Link>
 
-      {/* Right side */}
       <div className="flex space-x-2">
-        <Link to="/" className={linkButtonClasses}>
-          Home
-        </Link>
-
-        {!isLoggedIn && (
+        {location.pathname === "/profile" ? (
           <>
-            <Link to="/login" className={linkButtonClasses}>
-              Login
-            </Link>
-            <Link to="/signup" className={linkButtonClasses}>
-              Signup
-            </Link>
-          </>
-        )}
-
-        {isLoggedIn && (
-          <>
-            <Link to="/profile" className={linkButtonClasses}>
-              Profile
+            <Link to="/" className={linkButtonClasses}>
+              Home
             </Link>
             <button onClick={handleLogout} className={logoutButtonClasses}>
               Logout
             </button>
           </>
+        ) : (
+          <>
+            {isLoggedIn ? (
+              <Link to="/profile" className={linkButtonClasses}>
+                Profile
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className={linkButtonClasses}>
+                  Login
+                </Link>
+                <Link to="/signup" className={linkButtonClasses}>
+                  Signup
+                </Link>
+              </>
+            )}
+          </>
         )}
       </div>
 
-      {/* Keyframes for shine effect */}
       <style>
         {`
           @keyframes shine {

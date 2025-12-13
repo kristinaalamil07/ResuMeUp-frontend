@@ -1,20 +1,30 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { signup } from "../lib/auth"; // your signup function
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Signup({ setIsLoggedIn }) {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (signup(email, password)) {
-      setIsLoggedIn(true);
-      navigate("/"); // redirect to landing/home
-    } else {
-      alert("Signup failed");
+    setError("");
+
+    if (!name || !email || !password || !confirmPassword) {
+      setError("Please fill in all fields");
+      return;
     }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    localStorage.setItem("isLoggedIn", "true");
+    setIsLoggedIn(true);
+    navigate("/");
   }
 
   return (
@@ -26,11 +36,17 @@ export default function Signup({ setIsLoggedIn }) {
         animation: "shine 12s ease-in-out infinite",
       }}
     >
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-md w-full p-6 bg-white rounded-xl shadow space-y-4"
-      >
-        <h2 className="text-2xl font-bold text-center text-gray-800">Sign Up</h2>
+      <form className="max-w-md w-full p-6 bg-white rounded-xl shadow space-y-4" onSubmit={handleSubmit}>
+        <h2 className="text-3xl font-bold text-center text-gray-800">Sign Up</h2>
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+        <input
+          type="text"
+          placeholder="Full Name"
+          className="w-full border rounded-lg px-3 py-2"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <input
           type="email"
           placeholder="Email"
@@ -45,23 +61,25 @@ export default function Signup({ setIsLoggedIn }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button
-          type="submit"
-          className="w-full bg-gray-400 text-gray-900 px-4 py-2 rounded-xl hover:bg-gray-500 transition-colors"
-        >
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          className="w-full border rounded-lg px-3 py-2"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+
+        <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
           Sign Up
         </button>
-      </form>
 
-      <style>
-        {`
-          @keyframes shine {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-        `}
-      </style>
+        <p className="text-sm text-center mt-2">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-600 underline">
+            Login
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }
