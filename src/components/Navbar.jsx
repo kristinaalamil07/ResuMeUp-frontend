@@ -7,12 +7,12 @@ export default function Navbar({ isLoggedIn, setIsLoggedIn }) {
   // Logout handler
   function handleLogout() {
     setIsLoggedIn(false);
-    // Redirect to public landing page after logout
-    navigate("/"); 
+    navigate("/"); // Redirect to public landing page after logout
   }
 
+  // Navbar buttons - darker beige
   const linkButtonClasses =
-    "px-4 py-2 rounded-xl font-semibold bg-white text-blue-600 hover:bg-blue-600 hover:text-white transition-colors";
+    "px-4 py-2 rounded-xl font-semibold bg-[#bfa77a] text-[#3b2f1f] hover:bg-[#a78f5f] hover:text-white transition-colors";
 
   const logoutButtonClasses =
     "px-4 py-2 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600 transition-colors";
@@ -21,12 +21,12 @@ export default function Navbar({ isLoggedIn, setIsLoggedIn }) {
     <nav
       className="flex justify-between items-center p-6 shadow-md"
       style={{
-        background: "linear-gradient(135deg, #3b82f6, #1e40af)",
+        background: "linear-gradient(135deg, #d9c7a1, #c9b48f)", // darker beige navbar
         backgroundSize: "200% 200%",
         animation: "shine 10s ease-in-out infinite",
       }}
     >
-      <Link to="/" className="text-4xl font-bold text-white">
+      <Link to="/" className="text-4xl font-bold text-[#3b2f1f]">
         ResuMeUp
       </Link>
 

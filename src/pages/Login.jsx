@@ -11,11 +11,19 @@ export default function Login({ setIsLoggedIn }) {
     e.preventDefault();
     setError("");
 
-    // Simple mock login validation
-    if (email && password) {
+    // Simple mock login: check if email exists in localStorage
+    const savedEmail = localStorage.getItem("userEmail");
+    const savedName = localStorage.getItem("userName");
+
+    if (email && password && savedEmail === email) {
       localStorage.setItem("isLoggedIn", "true");
       setIsLoggedIn(true);
-      navigate("/");
+
+      // Save login info
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userName", savedName || "Kristina Alamil");
+
+      navigate("/profile");
     } else {
       setError("Invalid email or password");
     }

@@ -13,6 +13,7 @@ export default function Signup({ setIsLoggedIn }) {
     e.preventDefault();
     setError("");
 
+    // Validation
     if (!name || !email || !password || !confirmPassword) {
       setError("Please fill in all fields");
       return;
@@ -22,8 +23,15 @@ export default function Signup({ setIsLoggedIn }) {
       return;
     }
 
+    // Save user info in localStorage
+    localStorage.setItem("userName", name);
+    localStorage.setItem("userEmail", email);
+    localStorage.setItem("userPassword", password);
     localStorage.setItem("isLoggedIn", "true");
+
     setIsLoggedIn(true);
+
+    // Redirect to homepage
     navigate("/");
   }
 
@@ -42,7 +50,7 @@ export default function Signup({ setIsLoggedIn }) {
 
         <input
           type="text"
-          placeholder="Full Name"
+          placeholder="Name"
           className="w-full border rounded-lg px-3 py-2"
           value={name}
           onChange={(e) => setName(e.target.value)}
