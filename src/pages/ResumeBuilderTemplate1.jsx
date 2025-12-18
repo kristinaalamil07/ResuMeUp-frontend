@@ -1,310 +1,324 @@
-import { useState, useRef } from "react";
+import React, { useState } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useNavigate } from "react-router-dom";
 
 export default function ResumeBuilderTemplate1() {
-  const resumeRef = useRef();
-  const [showDownloadOptions, setShowDownloadOptions] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [submenuOpen, setSubmenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const [data, setData] = useState({
-    name: "Kristina Alamil",
-    title: "Frontend Developer",
-    picture: "",
-    email: "kristina@example.com",
-    phone: "0917-123-4567",
-    linkedin: "linkedin.com/in/kristinaalamil",
-    portfolio: "kristina.dev",
-    skills: ["React", "JavaScript", "Tailwind CSS", "HTML", "CSS"],
-    languages: ["English", "Filipino"],
-    interests: ["Web Development", "UI/UX Design", "Open Source"],
-    summary:
-      "Creative frontend developer with 2 years of experience building responsive and user-friendly web applications.",
-    experience: [
-      {
-        role: "Frontend Developer",
-        company: "Tech Solutions Inc.",
-        period: "2023 – Present",
-        details:
-          "Developed and maintained UI components using React and Tailwind CSS.",
-      },
-      {
-        role: "Intern Developer",
-        company: "Innovatech Labs",
-        period: "2022 – 2023",
-        details:
-          "Assisted in responsive web page design and internal tools development.",
-      },
-    ],
-    education: [
-      { degree: "BSc Computer Science", school: "University of Manila", period: "2019 – 2023" },
-    ],
-    references: [
-      {
-        name: "Prof. John Doe",
-        role: "CS Professor",
-        contact: "john.doe@university.com",
-      },
-      {
-        name: "Ms. Jane Smith",
-        role: "Team Lead at Tech Solutions",
-        contact: "jane.smith@techsolutions.com",
-      },
-    ],
-  });
-
-  // Handle picture upload when clicking the avatar
-  const handlePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setData((prev) => ({ ...prev, picture: reader.result }));
-    reader.readAsDataURL(file);
+  const saveAsPNG = async () => {
+    const resume = document.getElementById("resume-template-1");
+    if (!resume) return;
+    const canvas = await html2canvas(resume);
+    const dataURL = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = dataURL;
+    link.download = "resume1.png";
+    link.click();
   };
 
-  // Editable text on click
-  const handleTextChange = (field, value, index = null, subfield = null) => {
-    if (index !== null) {
-      setData((prev) => {
-        const copy = [...prev[field]];
-        if (subfield) copy[index][subfield] = value;
-        else copy[index] = value;
-        return { ...prev, [field]: copy };
-      });
-    } else {
-      setData((prev) => ({ ...prev, [field]: value }));
-    }
-  };
-
-  // Save draft
-  const handleSaveDraft = () => {
-    const savedDrafts = JSON.parse(localStorage.getItem("savedDrafts")) || [];
-    savedDrafts.push({ id: Date.now(), template: "Template 1", data });
-    localStorage.setItem("savedDrafts", JSON.stringify(savedDrafts));
-    alert("Draft Saved! It will appear in your profile.");
-  };
-
-  // Download
-  const handleDownload = async (type) => {
-    setShowDownloadOptions(false);
-    if (!resumeRef.current) return;
-
-    const canvas = await html2canvas(resumeRef.current, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-    });
+  const saveAsPDF = async () => {
+    const resume = document.getElementById("resume-template-1");
+    if (!resume) return;
+    const canvas = await html2canvas(resume);
     const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("resume1.pdf");
+  };
 
-    if (type === "png") {
-      const link = document.createElement("a");
-      link.href = imgData;
-      link.download = "resume.png";
-      link.click();
-    } else if (type === "pdf") {
-      const pdfWidth = 8.5;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pdf = new jsPDF({ orientation: "portrait", unit: "in", format: [pdfWidth, pdfHeight] });
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save("resume.pdf");
-    }
+  const saveAsDraft = () => {
+    const resumeData = {
+      name: document.querySelector('[contenteditable].text-3xl')?.innerText || "No Name",
+      jobTitle: document.querySelector('[contenteditable].text-sm.text-gray-600')?.innerText || "No Job Title",
+      template: "Template 1",
+      data: {} // you can save more fields if needed
+    };
+    const drafts = JSON.parse(localStorage.getItem("savedDrafts")) || [];
+    drafts.push({ id: Date.now(), ...resumeData });
+    localStorage.setItem("savedDrafts", JSON.stringify(drafts));
+    navigate("/profile"); // redirect to Profile.jsx to show the draft
   };
 
   return (
-    <div className="w-screen h-screen bg-gray-100 flex justify-center items-start p-6 relative">
-      {/* Buttons */}
-      <div className="absolute top-6 right-6 flex gap-2 z-50">
+    <div className="w-full min-h-screen bg-gray-200 flex justify-center py-10" id="resume-template-1">
+      
+      {/* ================= MENU — FIXED & STYLED ================= */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {/* MENU BUTTON */}
         <button
-          onClick={handleSaveDraft}
-          className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 text-sm transition"
+          onClick={() => { setOpen(!open); setSubmenuOpen(false); }}
+          className="w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition hover:scale-105"
+          style={{ background: "linear-gradient(135deg, #d9c7a1, #c9b48f)" }}
+          aria-label="Menu"
         >
-          Save Draft
+          <svg
+            className="w-6 h-6 text-[#3b2f1f]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
-        <button
-          onClick={() => setShowDownloadOptions(true)}
-          className="px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 text-sm transition"
-        >
-          Download
-        </button>
-      </div>
 
-      {/* Download modal */}
-      {showDownloadOptions && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 flex flex-col items-center gap-4">
-            <h2 className="text-lg font-semibold">Download As</h2>
-            <div className="flex gap-4">
-              <button onClick={() => handleDownload("png")} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                PNG
-              </button>
-              <button onClick={() => handleDownload("pdf")} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                PDF
-              </button>
-            </div>
-            <button onClick={() => setShowDownloadOptions(false)} className="mt-2 text-sm underline text-gray-700">
-              Cancel
+        {/* MAIN DROPDOWN */}
+        {open && !submenuOpen && (
+          <div
+            className="absolute bottom-16 right-0 w-52 rounded-2xl shadow-2xl overflow-hidden"
+            style={{ background: "linear-gradient(135deg, #d9c7a1, #c9b48f)" }}
+          >
+            <button
+              onClick={saveAsDraft}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-[#bfa77a] transition"
+            >
+              <span className="font-semibold text-[#3b2f1f]">Save as Draft</span>
+            </button>
+
+            <button
+              onClick={() => setSubmenuOpen(true)}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-[#bfa77a] transition"
+            >
+              <span className="font-semibold text-[#3b2f1f]">Save Resume</span>
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Resume */}
+        {/* SUBMENU — PDF & PNG */}
+        {submenuOpen && (
+          <div
+            className="absolute bottom-16 right-0 w-52 rounded-2xl shadow-2xl overflow-hidden"
+            style={{ background: "linear-gradient(135deg, #d9c7a1, #c9b48f)" }}
+          >
+            <button
+              onClick={saveAsPDF}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-[#bfa77a] transition"
+            >
+              <span className="font-semibold text-[#3b2f1f]">Save as PDF</span>
+            </button>
+
+            <button
+              onClick={saveAsPNG}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-[#bfa77a] transition"
+            >
+              <span className="font-semibold text-[#3b2f1f]">Save as PNG</span>
+            </button>
+
+            <button
+              onClick={() => { setSubmenuOpen(false); }}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-[#bfa77a] transition"
+            >
+              <span className="font-semibold text-[#3b2f1f]">Back</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      
+      {/* RESUME */}
       <div
-        ref={resumeRef}
-        className="bg-white shadow-2xl w-[8.5in] flex flex-col overflow-hidden"
-        style={{ fontFamily: "Georgia, serif" }}
+        id="resume-template-1"
+        className="w-[816px] h-[1056px] bg-white text-black px-14 py-12 shadow-lg"
       >
-        {/* Header */}
-        <div className="bg-gray-200 flex flex-col items-center p-4">
-          <div
-            className="w-36 h-36 mb-2 cursor-pointer"
-            onClick={() => document.getElementById("pictureInput").click()}
-          >
-            {data.picture ? (
-              <img src={data.picture} alt="Profile" className="w-full h-full object-cover rounded-full border-2 border-gray-400" />
-            ) : (
-              <div className="w-full h-full rounded-full bg-gray-400 flex items-center justify-center text-black text-sm border-2 border-gray-400">
-                Click to add photo
-              </div>
-            )}
-            <input type="file" accept="image/*" id="pictureInput" onChange={handlePictureChange} className="hidden" />
-          </div>
-          <div
+        {/* HEADER */}
+        <div className="text-center mb-6">
+          <h1
             contentEditable
             suppressContentEditableWarning
-            className="text-3xl font-bold text-center mb-1"
-            onBlur={(e) => handleTextChange("name", e.target.innerText)}
+            className="text-[26px] font-bold tracking-wide"
           >
-            {data.name}
-          </div>
-          <div
+            MICHAEL ZLATKOVSKY
+          </h1>
+          <p
             contentEditable
             suppressContentEditableWarning
-            className="text-lg text-gray-800 text-center"
-            onBlur={(e) => handleTextChange("title", e.target.innerText)}
+            className="text-[13px] mt-2"
           >
-            {data.title}
-          </div>
+            http://www.michaelzlat.com • michaelzlat@gmail.com • (812) 824-5373 •
+            6405 S. Main St. • Bloomington, IN 47401
+          </p>
         </div>
 
-        {/* Columns */}
-        <div className="flex flex-1 min-h-[12in]">
-          {/* Left */}
-          <div className="w-1/3 bg-blue-900 text-white p-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg border-b border-white pb-1 mb-2">Contact Info</h3>
-                {["email","phone","linkedin","portfolio"].map((field,i)=>(
-                  <div key={i}
-                    contentEditable
-                    suppressContentEditableWarning
-                    className="text-sm mb-1"
-                    onBlur={(e)=>handleTextChange(field,e.target.innerText)}
-                  >
-                    {data[field]}
-                  </div>
-                ))}
-              </div>
+        {/* OBJECTIVE */}
+        <section className="mb-5">
+          <h2 className="font-bold border-b mb-1 text-[14px]">OBJECTIVE</h2>
+          <p contentEditable className="text-[13px]">
+            Obtain a full-time Software Development or Product Management role,
+            utilizing my programming skills and leadership abilities.
+          </p>
+        </section>
 
-              <div>
-                <h3 className="font-semibold text-lg border-b border-white pb-1 mb-2">Skills</h3>
-                {data.skills.map((s,i)=>(
-                  <div key={i}
-                    contentEditable
-                    suppressContentEditableWarning
-                    className="text-sm mb-1"
-                    onBlur={(e)=>handleTextChange("skills",e.target.innerText,i)}
-                  >
-                    {s}
-                  </div>
-                ))}
-              </div>
+        {/* EDUCATION */}
+        <section className="mb-5">
+          <h2 className="font-bold border-b mb-2 text-[14px]">
+            EDUCATION & INTERNATIONAL EXPERIENCE
+          </h2>
 
-              <div>
-                <h3 className="font-semibold text-lg border-b border-white pb-1 mb-2">Languages</h3>
-                {data.languages.map((l,i)=>(
-                  <div key={i}
-                    contentEditable
-                    suppressContentEditableWarning
-                    className="text-sm mb-1"
-                    onBlur={(e)=>handleTextChange("languages",e.target.innerText,i)}
-                  >
-                    {l}
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-lg border-b border-white pb-1 mb-2">Interests</h3>
-                {data.interests.map((i2,i)=>(
-                  <div key={i}
-                    contentEditable
-                    suppressContentEditableWarning
-                    className="text-sm mb-1"
-                    onBlur={(e)=>handleTextChange("interests",e.target.innerText,i)}
-                  >
-                    {i2}
-                  </div>
-                ))}
-              </div>
+          <div className="mb-2">
+            <div className="flex justify-between font-bold text-[13px]">
+              <span contentEditable>Indiana University, Bloomington, IN</span>
+              <span contentEditable>2009–2011</span>
             </div>
+            <ul className="list-disc list-inside text-[13px]">
+              <li contentEditable>
+                Master of Science in Computer Science. 3.95 / 4.0 GPA.
+              </li>
+            </ul>
           </div>
 
-          {/* Right */}
-          <div className="flex-1 bg-white text-black p-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              {[
-                { title: "About Me", field: "summary" },
-                { title: "Work Experience", field: "experience" },
-                { title: "Education", field: "education" },
-                { title: "References", field: "references" },
-              ].map((section, idx)=>{
-                return (
-                  <div key={idx}>
-                    <h3 className="font-semibold text-lg border-b border-gray-400 pb-1 mb-2">{section.title}</h3>
-                    {Array.isArray(data[section.field])
-                      ? data[section.field].map((item,i)=>{
-                          return typeof item === "string" ? (
-                            <div key={i}
-                              contentEditable
-                              suppressContentEditableWarning
-                              className="text-sm mb-1"
-                              onBlur={(e)=>handleTextChange(section.field,e.target.innerText,i)}
-                            >
-                              {item}
-                            </div>
-                          ) : (
-                            <div key={i} className="mb-2">
-                              {Object.keys(item).map((sub,k)=>(
-                                <div key={k}
-                                  contentEditable
-                                  suppressContentEditableWarning
-                                  className="text-sm mb-1"
-                                  onBlur={(e)=>handleTextChange(section.field,e.target.innerText,i,sub)}
-                                >
-                                  {item[sub]}
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })
-                      : (
-                        <div
-                          contentEditable
-                          suppressContentEditableWarning
-                          className="text-sm mb-1"
-                          onBlur={(e)=>handleTextChange(section.field,e.target.innerText)}
-                        >
-                          {data[section.field]}
-                        </div>
-                      )
-                    }
-                  </div>
-                )
-              })}
+          <div className="mb-2">
+            <div className="flex justify-between font-bold text-[13px]">
+              <span contentEditable>University of Evansville, Evansville, IN</span>
+              <span contentEditable>2005–2009</span>
             </div>
+            <ul className="list-disc list-inside text-[13px]">
+              <li contentEditable>
+                Bachelor of Science in Computer Science, Bachelor of Arts in
+                Cognitive Science. 3.96 / 4.0 GPA.
+              </li>
+            </ul>
           </div>
-        </div>
+
+          <div>
+            <div className="flex justify-between font-bold text-[13px]">
+              <span contentEditable>
+                Harlaxton College, Grantham, United Kingdom
+              </span>
+              <span contentEditable>Spring & Fall 2007</span>
+            </div>
+            <ul className="list-disc list-inside text-[13px]">
+              <li contentEditable>
+                Completed 26 credits during study abroad. 3.90 / 4.0 GPA.
+              </li>
+            </ul>
+            <p contentEditable className="text-[13px] mt-1">
+              Languages: Fluent in Russian, some knowledge of Hebrew.
+            </p>
+          </div>
+        </section>
+
+        {/* WORK EXPERIENCE */}
+        <section className="mb-5">
+          <h2 className="font-bold border-b mb-2 text-[14px]">
+            WORK EXPERIENCE
+          </h2>
+
+          <div className="mb-3">
+            <div className="flex justify-between font-bold text-[13px]">
+              <span contentEditable>
+                SmartTabs, Co-Founder & Software Architect, Cologne, Germany
+                (telecommute)
+              </span>
+              <span contentEditable>2008–present</span>
+            </div>
+            <ul className="list-disc list-inside text-[13px]">
+              <li contentEditable>
+                Spearheaded all phases of product development from
+                conceptualization to release.
+              </li>
+              <li contentEditable>
+                Teleconferenced with colleagues to design new features and
+                troubleshoot issues.
+              </li>
+              <li contentEditable>
+                Wrote user manuals and administered company website.
+              </li>
+            </ul>
+          </div>
+
+          <div className="mb-3">
+            <div className="flex justify-between font-bold text-[13px]">
+              <span contentEditable>
+                Human-Robot Interaction Lab, Software Developer, Bloomington, IN
+              </span>
+              <span contentEditable>2009–2011</span>
+            </div>
+            <ul className="list-disc list-inside text-[13px]">
+              <li contentEditable>
+                Designed extensible visualization frameworks.
+              </li>
+              <li contentEditable>
+                Developed multi-robot simulators and editing environments.
+              </li>
+              <li contentEditable>
+                Collaborated on refactoring, testing, and documentation.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <div className="flex justify-between font-bold text-[13px]">
+              <span contentEditable>
+                Virginia Polytechnic Institute, Undergraduate Researcher,
+                Blacksburg, VA
+              </span>
+              <span contentEditable>Summer 2008</span>
+            </div>
+            <ul className="list-disc list-inside text-[13px]">
+              <li contentEditable>
+                Team-researched and demoed a prototype “universal input device”.
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* TECHNICAL SKILLS */}
+        <section className="mb-5">
+          <h2 className="font-bold border-b mb-2 text-[14px]">
+            TECHNICAL SKILLS
+          </h2>
+          <ul className="list-disc list-inside text-[13px] space-y-1">
+            <li contentEditable>
+              Java: 3+ years including multi-threading, GUI interfaces, security.
+            </li>
+            <li contentEditable>
+              C#, Visual Basic .NET: 3+ years developing Office add-ins.
+            </li>
+            <li contentEditable>
+              IDEs: 3+ years using Visual Studio and Eclipse.
+            </li>
+            <li contentEditable>
+              Version Control: 2 years intensive Subversion use.
+            </li>
+            <li contentEditable>
+              Web Programming: PHP, SQL, HTML, CSS, XML.
+            </li>
+            <li contentEditable>
+              Automated Testing & CI: JUnit, Bamboo, BuildBot.
+            </li>
+            <li contentEditable>
+              Documentation: Wiki, LaTeX, Confluence, JIRA.
+            </li>
+            <li contentEditable>
+              Operating Systems: Windows, Mac OS X, some Linux.
+            </li>
+          </ul>
+        </section>
+
+        {/* TEAM MANAGEMENT */}
+        <section>
+          <h2 className="font-bold border-b mb-2 text-[14px]">
+            TEAM MANAGEMENT EXPERIENCE
+          </h2>
+          <p className="font-bold text-[13px]" contentEditable>
+            Manager for “Fluency”, a UI Builder for Non-Programmers, Bloomington,
+            IN — 2010
+          </p>
+          <ul className="list-disc list-inside text-[13px]">
+            <li contentEditable>
+              Managed five graduate students, set milestones, reviewed code, and
+              oversaw team dynamics.
+            </li>
+          </ul>
+        </section>
       </div>
     </div>
   );
 }
+
+ 

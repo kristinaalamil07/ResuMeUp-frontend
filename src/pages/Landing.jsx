@@ -16,8 +16,6 @@ export default function Landing({ isLoggedIn }) {
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
   const templates = [
     { id: 1, img: template1, name: "Modern Professional Resume" },
     { id: 2, img: template2, name: "Minimalist Clean Resume" },
@@ -31,21 +29,15 @@ export default function Landing({ isLoggedIn }) {
   ];
 
   const handleCustomize = (id) => {
-  if (!isLoggedIn) {
-    navigate("/login");
-  } else if (currentUser?.isAdmin) {
-    alert("Admin cannot customize user templates!");
-  } else {
-    // Navigate to Resume Builder Template 1 only for template id 1
-    if (id === 1) {
-      navigate("/resume-builder-template1");
-      navigate("/resume-builder-template2");
-
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
     }
-  }
-  setSelectedTemplate(null);
-};
 
+    // 🔗 connect template id → resume builder page
+    navigate(`/resume-builder-template${id}`);
+    setSelectedTemplate(null);
+  };
 
   return (
     <div
@@ -88,47 +80,40 @@ export default function Landing({ isLoggedIn }) {
             className="relative bg-white rounded-xl shadow-xl p-6 max-w-4xl w-full flex gap-6"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* CLOSE BUTTON */}
+            {/* CLOSE */}
             <button
               onClick={() => setSelectedTemplate(null)}
-              className="absolute -top-3 -right-3 w-10 h-10 flex items-center justify-center
-                         rounded-full bg-white shadow-lg border border-gray-200
-                         text-gray-700 text-xl font-bold
-                         hover:bg-gray-100 hover:scale-105 transition"
-              aria-label="Close"
+              className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-white shadow text-xl"
             >
               ×
             </button>
 
-            {/* PREVIEW IMAGE */}
-            <div className="w-1/2 flex justify-center items-center">
+            {/* PREVIEW */}
+            <div className="w-1/2 flex justify-center">
               <img
                 src={selectedTemplate.img}
                 alt={selectedTemplate.name}
-                className="max-h-[450px] object-contain rounded-lg"
+                className="max-h-[450px] object-contain"
               />
             </div>
 
-            {/* INFO + CTA */}
+            {/* INFO */}
             <div className="w-1/2 flex flex-col justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                <h2 className="text-2xl font-bold mb-2">
                   {selectedTemplate.name}
                 </h2>
                 <p className="text-sm text-gray-600">
                   Resume (Legal Size – Portrait)
                 </p>
-                <p className="text-sm text-gray-500 mb-10">21.59 × 33.02 cm</p>
               </div>
 
-              {!currentUser?.isAdmin && (
-                <button
-                  onClick={() => handleCustomize(selectedTemplate.id)}
-                  className="w-full px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
-                >
-                  Customize Template
-                </button>
-              )}
+              <button
+                onClick={() => handleCustomize(selectedTemplate.id)}
+                className="w-full px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700"
+              >
+                Customize Template
+              </button>
             </div>
           </div>
         </div>
